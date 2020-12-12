@@ -2,3 +2,4 @@ __pycache__
 *.ipynb_checkpoints
 .vscode
 hash.txt
+.virtual_documents
