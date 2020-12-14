@@ -52,5 +52,5 @@ class HyperLogLog:
         
         return int(self.m ** 2 * alpha * (1 / sum([2**(-x) for x in hll])))
     
-    def accuracy(self):
+    def error(self):
         return 1.04 / np.sqrt(self.m)
