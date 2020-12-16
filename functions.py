@@ -10,7 +10,7 @@ class HashLogLog:
         random.seed(42)
         self.bits = bits
         self.m = 2 ** self.bits
-        self.p = 4999999937 # Prime number > 2^32
+        self.p = (2**148 + 1) // 17 # Prime number > 16^32
         self.a = random.randint(1, self.p)
         self.b = random.randint(0, self.p)
         assert(self.m < self.p), "Too many bits."
