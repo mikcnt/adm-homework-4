@@ -26,7 +26,7 @@ class KMeans:
             if not diff.any():
                 break
         
-        y_pred = self.predict(clusters)
+        y_pred = self._predict(clusters)
         
         if self.plot_figure:
             self.plot_fig(clusters, centroids)
@@ -54,7 +54,7 @@ class KMeans:
             centroids[idx] = new_centroid
         return centroids
     
-    def predict(self, clusters):
+    def _predict(self, clusters):
         y_pred = np.zeros(self.n_samples)
         for cluster_idx, cluster in enumerate(clusters):
             for sample_idx in cluster:
