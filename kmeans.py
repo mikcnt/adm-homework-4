@@ -11,6 +11,7 @@ def euc_dist(X, Y):
 def sed_distance(X, Y):
     return sum(np.min(np.sum((X[:, None] - Y) ** 2, axis=2), axis=1))
 
+
 def elbow_method(X, K=10, threshold=0.003):
     sum_squares = []
     cluster_values = range(1, K)
@@ -22,7 +23,6 @@ def elbow_method(X, K=10, threshold=0.003):
     sum_squares = np.array(sum_squares)
     sum_squares_normalized = sum_squares / sum_squares.max()
     cum_difference = sum_squares_normalized - np.append(sum_squares_normalized[1:], 0)
-    
     
     plt.figure(figsize=(12, 6))
     plt.plot(cluster_values, sum_squares_normalized, 'ro-')
