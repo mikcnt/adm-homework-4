@@ -11,7 +11,7 @@ def euc_dist(X, Y):
 def sed_distance(X, Y):
     return sum(np.min(np.sum((X[:, None] - Y) ** 2, axis=2), axis=1))
 
-def elbow_method(X, K=10):
+def elbow_method(X, K=10, threshold=0.003):
     sum_squares = []
     cluster_values = range(1, K)
     for k in cluster_values:
@@ -19,12 +19,19 @@ def elbow_method(X, K=10):
         model.fit(X)
         sum_squares.append(model.inertia_)
     
+    sum_squares = np.array(sum_squares)
+    sum_squares_normalized = sum_squares / sum_squares.max()
+    cum_difference = sum_squares_normalized - np.append(sum_squares_normalized[1:], 0)
+    
+    
     plt.figure(figsize=(12, 6))
-    plt.plot(cluster_values, sum_squares, 'ro-')
+    plt.plot(cluster_values, sum_squares_normalized, 'ro-')
     plt.xlabel('Number of clusters')
-    plt.ylabel('Sum of squares')
+    plt.ylabel('Normalized sum of squares')
     plt.title('Elbow method')
     plt.show()
+    
+    return np.where(cum_difference < threshold)[0][0] + 1
 
 
 class KMeans:
