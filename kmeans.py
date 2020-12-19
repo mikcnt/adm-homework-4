@@ -4,79 +4,58 @@ import matplotlib.pyplot as plt
 np.random.seed(42)
 
 
-def dist(x1, x2):
-    return np.sqrt(np.sum((x1 - x2) ** 2))
+def euc_dist(X, Y):
+    return np.sqrt(np.sum((X[:, None] - Y) ** 2, axis=2))
+
+
+def sed_distance(X, Y):
+    return sum(np.min(np.sum((X[:, None] - Y) ** 2, axis=2), axis=1))
 
 
 class KMeans:
-    def __init__(self, K=5, max_iters=100, plot_figure=False):
-        self.K = K
+    def __init__(self, n_clusters, max_iters=100, plot_figure=False):
+        self.K = n_clusters
         self.max_iters = max_iters
         self.plot_figure = plot_figure
 
     def fit(self, X):
         self.X = X
         self.n_samples, self.n_features = X.shape
-        centroids = self._initialize_centroids()
-        print("INITIAL CENTROIDS: \n", centroids)
+        self.cluster_centers_ = self._initialize_centroids()
         for _ in range(self.max_iters):
-            print('\n')
-            clusters = self._create_clusters(centroids)
-            print("CLUSTERS NUMBER {}:\n".format(_), clusters)
+            self._create_clusters()
 
-            previous_centroids = centroids
-            centroids = self._new_centroids(clusters)
-            print("CENTROIDS NUMBER {}:\n".format(_), centroids)
-            diff = centroids - previous_centroids
+            previous_centroids = self.cluster_centers_
+            self.cluster_centers_ = self._new_centroids()
+            self.inertia_ = sed_distance(self.X, self.cluster_centers_)
+
+            diff = self.cluster_centers_ - previous_centroids
 
             if not diff.any():
                 break
-            print('\n')
-            
-        y_pred = self._predict(clusters)
 
         if self.plot_figure:
-            self.plot_fig(clusters, centroids)
-
-        return y_pred
+            self.plot_fig()
+        return self
 
     def _initialize_centroids(self):
         np.random.seed(42)
         random_sample_idxs = np.random.choice(
             self.n_samples, self.K, replace=False)
-        centroids = [self.X[idx] for idx in random_sample_idxs]
+        centroids = self.X[random_sample_idxs]
         return centroids
 
-    def _create_clusters(self, centroids):
-        clusters = []
-        indexes = np.sqrt(np.sum((self.X[:, None] - centroids) ** 2, axis=2)).argmin(axis=1)
-        for c_num in range(self.K):
-            clusters.append(np.where(indexes == c_num)[0].tolist())
-        return clusters
+    def _create_clusters(self):
+        self.labels_ = euc_dist(self.X, self.cluster_centers_).argmin(axis=1)
 
-    def _new_centroids(self, clusters):
-        centroids = np.zeros((self.K, self.n_features))
-        for idx, cluster in enumerate(clusters):
-            new_centroid = np.mean(self.X[cluster], axis=0)
-            centroids[idx] = new_centroid
+    def _new_centroids(self):
+        centroids = np.array([self.X[self.labels_ == k].mean(axis=0) for k in range(self.K)])
         return centroids
 
-    def _predict(self, clusters):
-        y_pred = np.zeros(self.n_samples)
-        for cluster_idx, cluster in enumerate(clusters):
-            for sample_idx in cluster:
-                y_pred[sample_idx] = cluster_idx
+    def plot_fig(self):
+        assert(self.n_features == 2), 'Cannot plot kmeans if there are more than 2 dimensions.'
+        _, ax = plt.subplots(figsize=(16, 12))
 
-        return y_pred
-
-    def plot_fig(self, clusters, centroids):
-        fig, ax = plt.subplots(figsize=(16, 12))
-
-        # Plot clusters
-        for cluster in clusters:
-            cluster_points = self.X[cluster].T
+        for i in range(self.K):
+            cluster_points = np.array([self.X[self.labels_ == i]]).T
             ax.scatter(*cluster_points)
-
-        for centroid in centroids:
-            ax.scatter(*centroid, marker='x', color='black', linewidth=2)
-        plt.show()
