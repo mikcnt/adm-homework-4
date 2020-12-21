@@ -1,45 +1,18 @@
 import numpy as np
+import pandas as pd
 import matplotlib.pyplot as plt
 from sklearn.cluster import KMeans
 from wordcloud import WordCloud
 from numpy import linalg as LA
+from sklearn.feature_extraction.text import TfidfVectorizer
 
 not_fitted_error = "This KMeans instance is not fitted yet. Call 'fit' with appropriate arguments before using this estimator."
 wrong_data_error = "Call 'predict' on the same data used to fit the KMeans model."
 
 np.random.seed(42)
 
-def elbow_method(X, min_cluster_n=2, max_cluster_n=10, threshold=0.965):
-    cluster_values = range(min_cluster_n, max_cluster_n + 1)
-    sum_squares = []
-    for k in cluster_values:
-        model = KMeansClustering(n_clusters=k)
-        model.fit(X)
-        sum_squares.append(model.inertia_)
-    
-    sum_squares = np.array(sum_squares)
-    slope = np.append(sum_squares[1:], 0) / sum_squares
-    
-    stopping_points = np.where(slope > threshold)[0]
-    
-    if stopping_points.size != 0:
-        stopping_point = stopping_points[0] + cluster_values[0]
-    
-    plt.figure(figsize=(12, 6))
-    plt.grid(which='minor', alpha=0.2)
-    plt.grid(which='major', alpha=0.5)
-    plt.xticks(cluster_values)
-    plt.plot(cluster_values, sum_squares, 'o-')
-    if stopping_points.size != 0:
-        plt.axvline(x=stopping_point, color='black', linestyle='--')
-    plt.xlabel('Number of clusters')
-    plt.ylabel('Sum of squares')
-    plt.title('Elbow method')
-    plt.show()
-
 def dist(X, Y):
     return np.sqrt(np.sum((X[:, None] - Y) ** 2, axis=2))
-
 
 def sed_distance(X, Y):
     return sum(np.min(np.sum((X[:, None] - Y) ** 2, axis=2), axis=1))
@@ -99,3 +72,60 @@ class KMeansClustering:
                 centroids.append(cluster_k.mean(axis=0))
         # centroids = np.array([self.X[self.labels_ == k].mean(axis=0) for k in range(self.K)])
         self.cluster_centers_ = np.array(centroids)
+
+
+def elbow_method(X, min_cluster_n=2, max_cluster_n=10, threshold=0.965):
+    cluster_values = range(min_cluster_n, max_cluster_n + 1)
+    sum_squares = []
+    for k in cluster_values:
+        model = KMeansClustering(n_clusters=k)
+        model.fit(X)
+        sum_squares.append(model.inertia_)
+    
+    sum_squares = np.array(sum_squares)
+    slope = np.append(sum_squares[1:], 0) / sum_squares
+    
+    stopping_points = np.where(slope > threshold)[0]
+    
+    if stopping_points.size != 0:
+        stopping_point = stopping_points[0] + cluster_values[0]
+    
+    plt.figure(figsize=(12, 6))
+    plt.grid(which='minor', alpha=0.2)
+    plt.grid(which='major', alpha=0.5)
+    plt.xticks(cluster_values)
+    plt.plot(cluster_values, sum_squares, 'o-')
+    if stopping_points.size != 0:
+        plt.axvline(x=stopping_point, color='black', linestyle='--')
+    plt.xlabel('Number of clusters')
+    plt.ylabel('Sum of squares')
+    plt.title('Elbow method')
+    plt.show()        
+
+def word_cloud(data, cluster_n, min_df=0.01, max_df=1.0, max_words=80, plot_dim=(800, 800)):
+    width, height = plot_dim
+    cluster_data = data[data['Cluster'] == cluster_n]
+    vect = TfidfVectorizer(min_df=min_df, max_df=max_df)
+    vecs = vect.fit_transform(cluster_data['Text'])
+    feature_names = vect.get_feature_names()
+    dense = vecs.todense()
+    lst1 = dense.tolist()
+    df = pd.DataFrame(lst1, columns=feature_names)
+    
+    return WordCloud(width=width, height=height,
+                     max_words=max_words,
+                     background_color ='white',
+                     min_font_size = 10).generate_from_frequencies(df.T.sum(axis=1))
+    
+def plot_wordclouds(data, clusters=[5, 6, 7], figsize=(20, 10)):
+    fig, axs = plt.subplots(1, len(clusters), figsize=figsize)
+    for i, cl_n in enumerate(clusters):
+        axs[i].imshow(word_cloud(data, cl_n))
+        axs[i].set_title('Cluster {}'.format(cl_n))
+        axs[i].axis('off')
+    
+    for ax in axs.flat:
+        ax.set(xlabel='x-label', ylabel='y-label')
+
+    for ax in axs.flat:
+        ax.label_outer()
