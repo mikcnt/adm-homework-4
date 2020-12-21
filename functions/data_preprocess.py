@@ -1,3 +1,7 @@
+import numpy as np
+import pandas as pd
+from sklearn.feature_extraction.text import TfidfVectorizer
+from sklearn.decomposition import TruncatedSVD
 import random
 import re
 import nltk
@@ -15,7 +19,7 @@ def remove_html_tags(raw_text):
     cleantext = re.sub(cleanr, '', raw_text)
     return cleantext
 
-def clean_data(raw_text):
+def preprocess(raw_text):
 
     # Removing punctuation and numbers
     raw_text = re.sub(r'[^a-z\s]', ' ', raw_text)
@@ -34,3 +38,19 @@ def clean_data(raw_text):
     lemmatized_output = [w for w in lemmatized_output.split() if not w in stop_words]
 
     return " ".join(lemmatized_output)
+
+def tfidf_svd(data):
+    vectorizer = TfidfVectorizer(min_df=0.1)
+    tfidf_data = vectorizer.fit_transform(data)
+    
+    temp_components = tfidf_data.shape[1] - 1 if tfidf_data.shape[1] <= 100 else 100
+    svd = TruncatedSVD(n_components=temp_components, random_state=42)
+    svd.fit(tfidf_data)
+    
+    variance = np.cumsum(svd.explained_variance_ratio_)
+    n_components = np.argmax(variance >= 0.6) + 1
+    
+    svd = TruncatedSVD(n_components=n_components, random_state=42)
+    data_reduced = svd.fit_transform(tfidf_data)
+    
+    return data_reduced
