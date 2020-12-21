@@ -1,6 +1,7 @@
 import numpy as np
 import matplotlib.pyplot as plt
 from sklearn.cluster import KMeans
+from wordcloud import WordCloud
 from numpy import linalg as LA
 
 not_fitted_error = "This KMeans instance is not fitted yet. Call 'fit' with appropriate arguments before using this estimator."
@@ -8,31 +9,33 @@ wrong_data_error = "Call 'predict' on the same data used to fit the KMeans model
 
 np.random.seed(42)
 
-def elbow_method(X, K=10):
+def elbow_method(X, min_cluster_n=2, max_cluster_n=10, threshold=0.965):
+    cluster_values = range(min_cluster_n, max_cluster_n + 1)
     sum_squares = []
-    cluster_values = range(1, K + 1)
     for k in cluster_values:
         model = KMeansClustering(n_clusters=k)
         model.fit(X)
         sum_squares.append(model.inertia_)
-        print('Number of clusters = {}\t'
-              'Number of iterations = {}'
-              .format(k, model.n_iter_))
     
     sum_squares = np.array(sum_squares)
-    sum_squares_normalized = sum_squares / sum_squares.max()
+    slope = np.append(sum_squares[1:], 0) / sum_squares
+    
+    stopping_points = np.where(slope > threshold)[0]
+    
+    if stopping_points.size != 0:
+        stopping_point = stopping_points[0] + cluster_values[0]
     
     plt.figure(figsize=(12, 6))
     plt.grid(which='minor', alpha=0.2)
     plt.grid(which='major', alpha=0.5)
     plt.xticks(cluster_values)
-    plt.plot(cluster_values, sum_squares_normalized, 'o-')
+    plt.plot(cluster_values, sum_squares, 'o-')
+    if stopping_points.size != 0:
+        plt.axvline(x=stopping_point, color='black', linestyle='--')
     plt.xlabel('Number of clusters')
-    plt.ylabel('Normalized sum of squares')
+    plt.ylabel('Sum of squares')
     plt.title('Elbow method')
     plt.show()
-    
-
 
 def dist(X, Y):
     return np.sqrt(np.sum((X[:, None] - Y) ** 2, axis=2))
@@ -40,6 +43,7 @@ def dist(X, Y):
 
 def sed_distance(X, Y):
     return sum(np.min(np.sum((X[:, None] - Y) ** 2, axis=2), axis=1))
+
 class KMeansClustering:
     def __init__(self, n_clusters, max_iter=150, plot_figure=False):
         self.K = n_clusters
@@ -86,5 +90,12 @@ class KMeansClustering:
         self.labels_ = dist(self.X, self.cluster_centers_).argmin(axis=1)
 
     def _new_centroids(self):
-        centroids = np.array([self.X[self.labels_ == k].mean(axis=0) for k in range(self.K)])
-        self.cluster_centers_ = centroids
+        centroids = []
+        for k in range(self.K):
+            cluster_k = self.X[self.labels_ == k]
+            if cluster_k.shape[0] == 0:
+                centroids.append(self.cluster_centers_[k])
+            else:
+                centroids.append(cluster_k.mean(axis=0))
+        # centroids = np.array([self.X[self.labels_ == k].mean(axis=0) for k in range(self.K)])
+        self.cluster_centers_ = np.array(centroids)
