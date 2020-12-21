@@ -2,9 +2,9 @@ import numpy as np
 import pandas as pd
 import matplotlib.pyplot as plt
 from sklearn.cluster import KMeans
+from sklearn.feature_extraction.text import TfidfVectorizer
 from wordcloud import WordCloud
 from numpy import linalg as LA
-from sklearn.feature_extraction.text import TfidfVectorizer
 
 not_fitted_error = "This KMeans instance is not fitted yet. Call 'fit' with appropriate arguments before using this estimator."
 wrong_data_error = "Call 'predict' on the same data used to fit the KMeans model."
@@ -117,15 +117,32 @@ def word_cloud(data, cluster_n, min_df=0.01, max_df=1.0, max_words=80, plot_dim=
                      background_color ='white',
                      min_font_size = 10).generate_from_frequencies(df.T.sum(axis=1))
     
-def plot_wordclouds(data, clusters=[5, 6, 7], figsize=(20, 10)):
-    fig, axs = plt.subplots(1, len(clusters), figsize=figsize)
-    for i, cl_n in enumerate(clusters):
-        axs[i].imshow(word_cloud(data, cl_n))
-        axs[i].set_title('Cluster {}'.format(cl_n))
-        axs[i].axis('off')
+def plot_wordclouds(data, clusters):
+    num_clusters = len(clusters)
+    sub_rows = num_clusters // 3 if num_clusters % 3 == 0 else num_clusters // 3 + 1
+    sub_cols = 3 if num_clusters >= 3 else num_clusters
+    fig_w = 22
+    fig_h = 7 * sub_rows
+    
+    _, axs = plt.subplots(sub_rows, sub_cols, figsize=(fig_w, fig_h))
+    if sub_rows == 1:
+        for i, cl_n in enumerate(clusters):
+            axs[i].imshow(word_cloud(data, cl_n))
+            axs[i].set_title('Cluster {}'.format(cl_n))
+            axs[i].axis('off')
+    else:
+        cl_n = clusters[0]
+        for i in range(sub_rows):
+            for j in range(sub_cols):
+                if cl_n - clusters[0] < num_clusters:
+                    axs[i, j].imshow(word_cloud(data, cl_n))
+                    axs[i, j].set_title('Cluster {}'.format(cl_n))
+                axs[i, j].axis('off')
+                cl_n += 1
     
     for ax in axs.flat:
         ax.set(xlabel='x-label', ylabel='y-label')
 
     for ax in axs.flat:
         ax.label_outer()
+        
