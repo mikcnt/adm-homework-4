@@ -70,16 +70,15 @@ class KMeansClustering:
                 centroids.append(self.cluster_centers_[k])
             else:
                 centroids.append(cluster_k.mean(axis=0))
-        # centroids = np.array([self.X[self.labels_ == k].mean(axis=0) for k in range(self.K)])
         self.cluster_centers_ = np.array(centroids)
 
 
-def elbow_method(X, min_cluster_n=2, max_cluster_n=10, threshold=0.965):
+def elbow_method(data, min_cluster_n=2, max_cluster_n=10, threshold=0.965):
     cluster_values = range(min_cluster_n, max_cluster_n + 1)
     sum_squares = []
     for k in cluster_values:
         model = KMeansClustering(n_clusters=k)
-        model.fit(X)
+        model.fit(data)
         sum_squares.append(model.inertia_)
     
     sum_squares = np.array(sum_squares)
@@ -102,9 +101,9 @@ def elbow_method(X, min_cluster_n=2, max_cluster_n=10, threshold=0.965):
     plt.title('Elbow method')
     plt.show()        
 
-def word_cloud(data, cluster_n, min_df=0.01, max_df=1.0, max_words=80, plot_dim=(800, 800)):
+def word_cloud(data, cluster_n, min_df=0.01, max_df=1.0, max_words=80, plot_dim=(800, 800), cluster_col = 'Cluster'):
     width, height = plot_dim
-    cluster_data = data[data['Cluster'] == cluster_n]
+    cluster_data = data[data[cluster_col] == cluster_n]
     vect = TfidfVectorizer(min_df=min_df, max_df=max_df)
     vecs = vect.fit_transform(cluster_data['Text'])
     feature_names = vect.get_feature_names()
@@ -117,7 +116,7 @@ def word_cloud(data, cluster_n, min_df=0.01, max_df=1.0, max_words=80, plot_dim=
                      background_color ='white',
                      min_font_size = 10).generate_from_frequencies(df.T.sum(axis=1))
     
-def plot_wordclouds(data, clusters):
+def plot_wordclouds(data, clusters, cluster_col = 'Cluster'):
     n_clusters = len(clusters)
     sub_rows = n_clusters // 3 if n_clusters % 3 == 0 else n_clusters // 3 + 1
     sub_cols = 3 if n_clusters >= 3 else n_clusters
@@ -127,7 +126,7 @@ def plot_wordclouds(data, clusters):
     _, axs = plt.subplots(sub_rows, sub_cols, figsize=(fig_w, fig_h))
     if sub_rows == 1:
         for i, cl_n in enumerate(clusters):
-            axs[i].imshow(word_cloud(data, cl_n))
+            axs[i].imshow(word_cloud(data, cl_n, cluster_col=cluster_col))
             axs[i].set_title('Cluster {}'.format(cl_n))
             axs[i].axis('off')
     else:
@@ -135,7 +134,7 @@ def plot_wordclouds(data, clusters):
         for i in range(sub_rows):
             for j in range(sub_cols):
                 if cl_n - clusters[0] < n_clusters:
-                    axs[i, j].imshow(word_cloud(data, cl_n))
+                    axs[i, j].imshow(word_cloud(data, cl_n, cluster_col=cluster_col))
                     axs[i, j].set_title('Cluster {}'.format(cl_n))
                 axs[i, j].axis('off')
                 cl_n += 1
