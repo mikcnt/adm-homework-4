@@ -40,7 +40,8 @@ class KMeansClustering:
             # Weak convergence: close centroids between two iterations
             if LA.norm(diff) < 1e-04:
                 break
-        self.n_iter_ += 1
+            self.n_iter_ += 1
+        self._order_labels()
         return self
     
     def predict(self, X):
@@ -71,6 +72,20 @@ class KMeansClustering:
             else:
                 centroids.append(cluster_k.mean(axis=0))
         self.cluster_centers_ = np.array(centroids)
+        
+    def _order_labels(self):
+        cluster_sizes = []
+        for i in range(self.K):
+            cluster_sizes.append(self.labels_[self.labels_ == i].size)
+
+        ordered_sizes = np.argsort(-np.array(cluster_sizes))
+
+        ordered_labels = np.zeros_like(self.labels_)
+
+        for i, label in enumerate(ordered_sizes):
+            ordered_labels[self.labels_ == label] = i
+            
+        self.labels_ = ordered_labels
 
 
 def elbow_method(data, min_cluster_n=2, max_cluster_n=10, threshold=0.965):
@@ -116,7 +131,7 @@ def word_cloud(data, cluster_n, min_df=0.01, max_df=1.0, max_words=80, plot_dim=
                      background_color ='white',
                      min_font_size = 10).generate_from_frequencies(df.T.sum(axis=1))
     
-def plot_wordclouds(data, clusters, cluster_col = 'Cluster'):
+def plot_wordclouds(data, clusters, cluster_col='Cluster'):
     n_clusters = len(clusters)
     sub_rows = n_clusters // 3 if n_clusters % 3 == 0 else n_clusters // 3 + 1
     sub_cols = 3 if n_clusters >= 3 else n_clusters
@@ -130,14 +145,31 @@ def plot_wordclouds(data, clusters, cluster_col = 'Cluster'):
             axs[i].set_title('Cluster {}'.format(cl_n))
             axs[i].axis('off')
     else:
-        cl_n = clusters[0]
+        cont = 0
         for i in range(sub_rows):
             for j in range(sub_cols):
-                if cl_n - clusters[0] < n_clusters:
-                    axs[i, j].imshow(word_cloud(data, cl_n, cluster_col=cluster_col))
-                    axs[i, j].set_title('Cluster {}'.format(cl_n))
+                if cont < n_clusters:
+                    axs[i, j].imshow(word_cloud(data, clusters[cont], cluster_col=cluster_col))
+                    axs[i, j].set_title('Cluster {}'.format(clusters[cont]))
                 axs[i, j].axis('off')
-                cl_n += 1
+                cont += 1
+    
+    for ax in axs.flat:
+        ax.set(xlabel='x-label', ylabel='y-label')
+
+    for ax in axs.flat:
+        ax.label_outer()
+        
+def wordcloud_comparison(data, cluster):
+    sk_clusters_ordered = (- data.groupby('Cluster_sklearn').count()['Time']).argsort().tolist()
+    sk_cluster = sk_clusters_ordered[cluster]
+    _, axs = plt.subplots(1, 2, figsize=(16, 8))
+    axs[0].imshow(word_cloud(data, cluster, cluster_col='Cluster'))
+    axs[0].set_title('Custom KMeans - Cluster {}'.format(cluster), fontsize=14)
+    axs[0].axis('off')
+    axs[1].imshow(word_cloud(data, sk_cluster, cluster_col='Cluster_sklearn'))
+    axs[1].set_title('Sklearn KMeans - Cluster {}'.format(sk_cluster), fontsize=14)
+    axs[1].axis('off')
     
     for ax in axs.flat:
         ax.set(xlabel='x-label', ylabel='y-label')
