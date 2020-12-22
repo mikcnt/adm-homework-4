@@ -226,3 +226,21 @@ def plot_distributions(data, n_clusters=16):
     
 def uniqueusers_per_cluster(data):
     display(data.groupby(['Cluster'])['UserId'].nunique().reset_index())
+
+def compare_clusters(data, cluster):
+    """Compare two clusters (custom and sklearn) by their intersection."""
+    revs_custom = reviews_per_cluster(data)
+    revs_sklearn = reviews_per_cluster(data, cluster_col='Cluster_sklearn')
+
+    n_custom = np.array(revs_custom['Reviews Number'])
+    n_sklearn = np.array(revs_sklearn['Reviews Number'])
+
+    sk_cluster = np.argmin(np.abs(n_custom[:, None] - n_sklearn), axis=1)[cluster]
+    
+    num = data[(data['Cluster'] == cluster) & (data['Cluster_sklearn'] == sk_cluster)].shape[0]
+    den_1 = data[data['Cluster'] == cluster].shape[0]
+    den_2 = data[data['Cluster_sklearn'] == sk_cluster].shape[0]
+    prob_1 = num / den_1
+    prob_2 = num / den_2
+    
+    return sk_cluster, prob_1, prob_2
