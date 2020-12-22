@@ -18,8 +18,7 @@ Once the requirements are installed, you shouldn't have any problem when executi
 
 where you have to replace `<env>` with the name you want to give to the new environment.
 
-Notice that, unfortunately, this kind of requirements file is built on a Linux machine, and therefore it is not guaranteed that this will work on different S.O.
-
+Notice that, unfortunately, this kind of requirements file is built on a Linux machine, and therefore it is not guaranteed that this will work on different OS.
 ## Repo structure
 The repository consists of the following files:
 * [__`main.ipynb`__](../main/main.ipynb):
