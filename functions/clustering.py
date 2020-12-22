@@ -235,12 +235,17 @@ def compare_clusters(data, cluster):
     n_custom = np.array(revs_custom['Reviews Number'])
     n_sklearn = np.array(revs_sklearn['Reviews Number'])
 
-    sk_cluster = np.argmin(np.abs(n_custom[:, None] - n_sklearn), axis=1)[cluster]
-    
-    num = data[(data['Cluster'] == cluster) & (data['Cluster_sklearn'] == sk_cluster)].shape[0]
-    den_1 = data[data['Cluster'] == cluster].shape[0]
-    den_2 = data[data['Cluster_sklearn'] == sk_cluster].shape[0]
-    prob_1 = num / den_1
-    prob_2 = num / den_2
-    
+    candidates = np.argsort(np.abs(n_custom[:, None] - n_sklearn), axis=1)[cluster, :]
+    for cand in candidates:
+        num = data[(data['Cluster'] == cluster) & (data['Cluster_sklearn'] == cand)].shape[0]
+        den_1 = data[data['Cluster'] == cluster].shape[0]
+        den_2 = data[data['Cluster_sklearn'] == cand].shape[0]
+        prob_1 = num / den_1
+        prob_2 = num / den_2
+        if prob_1 > 0.1 and prob_2 > 0.1:
+            sk_cluster = cand
+            break
+        else:
+            sk_cluster = cand
+
     return sk_cluster, prob_1, prob_2
