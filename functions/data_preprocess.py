@@ -12,6 +12,7 @@ from nltk.stem.porter import PorterStemmer
 nltk.download('wordnet')
 nltk.download('stopwords')
 nltk.download('punkt')
+nltk.download('averaged_perceptron_tagger')
 
 # Question 2: Cleaning the data
 

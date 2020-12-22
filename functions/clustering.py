@@ -106,7 +106,7 @@ def elbow_method(data, min_cluster_n=2, max_cluster_n=10, threshold=0.965):
         data (np.array): Data to use for the computation of the error.
         min_cluster_n (int, optional): Minimum number of clusters to consider. Defaults to 2.
         max_cluster_n (int, optional): Maximum number of clusters to consider. Defaults to 10.
-        threshold (float, optional): Threshold used to find sweet spot. Defaults to 0.965.
+        threshold (float, optional): Threshold used to find sweet spot. Defaults to 0.98.
     """
     cluster_values = range(min_cluster_n, max_cluster_n + 1)
     sum_squares = []
@@ -234,7 +234,7 @@ def wordcloud_comparison(data, cluster):
 def reviews_per_cluster(data, cluster_col='Cluster'):
     return data.groupby(cluster_col).count()['Text'].reset_index().rename(columns={'Text': 'Reviews Number'})
     
-def plot_distributions(data, n_clusters=16):
+def plot_distributions(data, n_clusters):
     """Plot distributions for the score values in each cluster."""
     bins = np.arange(7) - 0.5
     _, ax = plt.subplots(4, 4, figsize=(20, 20))
@@ -243,6 +243,8 @@ def plot_distributions(data, n_clusters=16):
     for c in range(n_clusters):
         cluster_score = data[data['Cluster'] == c]['Score']
         ax[c].hist(cluster_score, bins=bins, alpha=0.8, edgecolor='black')
+    for i in range(c + 1, 16):
+        ax[i].axis('off')
     plt.show()
     
 def uniqueusers_per_cluster(data):
