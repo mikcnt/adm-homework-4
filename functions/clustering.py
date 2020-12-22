@@ -177,8 +177,8 @@ def wordcloud_comparison(data, cluster):
     for ax in axs.flat:
         ax.label_outer()
         
-def reviews_per_cluster(data):
-    display(data.groupby('Cluster').count()['Text'].reset_index().rename(columns={'Text': 'Reviews Number'}))
+def reviews_per_cluster(data, cluster_col='Cluster'):
+    return data.groupby(cluster_col).count()['Text'].reset_index().rename(columns={'Text': 'Reviews Number'})
     
 def plot_distributions(data, n_clusters=16):
     bins = np.arange(7) - 0.5
