@@ -150,11 +150,8 @@ def reviews_per_cluster(data):
     display(data.groupby('Cluster').count()['Text'].reset_index().rename(columns={'Text': 'Reviews Number'}))
     
 def plot_distributions(data, n_clusters=16):
-    n_rows = n_clusters // 4 if n_clusters % 4 == 0 else n_clusters // 4 + 1
-    fig_w = 22
-    fig_h = 5
     bins = np.arange(7) - 0.5
-    fig, ax = plt.subplots(4, 4, figsize=(20, 20))
+    _, ax = plt.subplots(4, 4, figsize=(20, 20))
     plt.setp(ax, xticks=range(1, 6), xlim=[0, 6])
     ax = ax.reshape(16)
     for c in range(n_clusters):
