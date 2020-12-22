@@ -118,9 +118,9 @@ def word_cloud(data, cluster_n, min_df=0.01, max_df=1.0, max_words=80, plot_dim=
                      min_font_size = 10).generate_from_frequencies(df.T.sum(axis=1))
     
 def plot_wordclouds(data, clusters):
-    num_clusters = len(clusters)
-    sub_rows = num_clusters // 3 if num_clusters % 3 == 0 else num_clusters // 3 + 1
-    sub_cols = 3 if num_clusters >= 3 else num_clusters
+    n_clusters = len(clusters)
+    sub_rows = n_clusters // 3 if n_clusters % 3 == 0 else n_clusters // 3 + 1
+    sub_cols = 3 if n_clusters >= 3 else n_clusters
     fig_w = 22
     fig_h = 7 * sub_rows
     
@@ -134,7 +134,7 @@ def plot_wordclouds(data, clusters):
         cl_n = clusters[0]
         for i in range(sub_rows):
             for j in range(sub_cols):
-                if cl_n - clusters[0] < num_clusters:
+                if cl_n - clusters[0] < n_clusters:
                     axs[i, j].imshow(word_cloud(data, cl_n))
                     axs[i, j].set_title('Cluster {}'.format(cl_n))
                 axs[i, j].axis('off')
@@ -146,3 +146,18 @@ def plot_wordclouds(data, clusters):
     for ax in axs.flat:
         ax.label_outer()
         
+def reviews_per_cluster(data):
+    display(data.groupby('Cluster').count()['Text'].reset_index().rename(columns={'Text': 'Reviews Number'}))
+    
+def plot_distributions(data, n_clusters=16):
+    n_rows = n_clusters // 4 if n_clusters % 4 == 0 else n_clusters // 4 + 1
+    fig_w = 22
+    fig_h = 5
+    bins = np.arange(7) - 0.5
+    fig, ax = plt.subplots(4, 4, figsize=(20, 20))
+    plt.setp(ax, xticks=range(1, 6), xlim=[0, 6])
+    ax = ax.reshape(16)
+    for c in range(n_clusters):
+        cluster_score = data[data['Cluster'] == c]['Score']
+        ax[c].hist(cluster_score, bins=bins, alpha=0.8, edgecolor='black')
+    plt.show()
