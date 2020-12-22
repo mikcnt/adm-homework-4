@@ -21,6 +21,7 @@ def remove_html_tags(raw_text):
     return cleantext
 
 def preprocess(raw_text):
+    """Apply standard NLP preprocess (html tags removal, punctuation removal, std + custom stopwords removal)."""
     raw_text = raw_text.lower()
     raw_text = remove_html_tags(raw_text)
     # Removing punctuation and numbers
@@ -43,12 +44,22 @@ def lemmatization(raw_text):
     return ' '.join([lemmatizer.lemmatize(w) for w in word_list])
 
 def keep_nouns(raw_text):
+    """Removes non-nouns words from a string."""
     tokens = nltk.word_tokenize(raw_text)
     tagged = nltk.pos_tag(tokens)
 
     return ' '.join([token[0] for token in tagged if token[1].startswith('N')])
 
 def tfidf_svd(data, min_df=0.02):
+    """Computes tfidf vector representation and reduces dimensionality of the space with SVD.
+
+    Args:
+        data (pd.Series): Dataframe column containing the data to be hashed
+        min_df (float, optional): Minimum value for df to consider when representing data with tfidf. Defaults to 0.02.
+
+    Returns:
+        np.array: Tfidf representation with selected number of components retaining high variance.
+    """
     vectorizer = TfidfVectorizer(min_df=min_df)
     tfidf_data = vectorizer.fit_transform(data)
     
