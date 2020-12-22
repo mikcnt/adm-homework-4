@@ -26,7 +26,7 @@ class KMeansClustering:
         n_clusters (int): Number of clusters to create.
         max_iter (int, optional): Number of iterations to try before quitting the fit method. Defaults to 150.
     """
-    def __init__(self, n_clusters, max_iter=150, plot_figure=False):
+    def __init__(self, n_clusters, max_iter=150):
         self.K = n_clusters
         self.max_iters = max_iter
         self.inertia_ = 0
@@ -191,11 +191,32 @@ def plot_wordclouds(data, clusters, cluster_col='Cluster'):
 
     for ax in axs.flat:
         ax.label_outer()
-        
+
+def closest_cluster(data, cluster):
+    revs_custom = reviews_per_cluster(data)
+    revs_sklearn = reviews_per_cluster(data, cluster_col='Cluster_sklearn')
+
+    n_custom = np.array(revs_custom['Reviews Number'])
+    n_sklearn = np.array(revs_sklearn['Reviews Number'])
+
+    candidates = np.argsort(np.abs(n_custom[:, None] - n_sklearn), axis=1)[cluster, :]
+    for cand in candidates:
+        num = data[(data['Cluster'] == cluster) & (data['Cluster_sklearn'] == cand)].shape[0]
+        den_1 = data[data['Cluster'] == cluster].shape[0]
+        den_2 = data[data['Cluster_sklearn'] == cand].shape[0]
+        prob_1 = num / den_1
+        prob_2 = num / den_2
+        if prob_1 > 0.1 and prob_2 > 0.1:
+            sk_cluster = cand
+            break
+        else:
+            sk_cluster = cand
+
+    return sk_cluster, prob_1, prob_2
+
 def wordcloud_comparison(data, cluster):
     """Compare wordclouds generated from custom and sklearn K-Means algorihtms."""
-    sk_clusters_ordered = (- data.groupby('Cluster_sklearn').count()['Time']).argsort().tolist()
-    sk_cluster = sk_clusters_ordered[cluster]
+    sk_cluster = closest_cluster(data, cluster)[0]
     _, axs = plt.subplots(1, 2, figsize=(16, 8))
     axs[0].imshow(word_cloud(data, cluster, cluster_col='Cluster'))
     axs[0].set_title('Custom KMeans - Cluster {}'.format(cluster), fontsize=14)
@@ -226,26 +247,3 @@ def plot_distributions(data, n_clusters=16):
     
 def uniqueusers_per_cluster(data):
     display(data.groupby(['Cluster'])['UserId'].nunique().reset_index())
-
-def compare_clusters(data, cluster):
-    """Compare two clusters (custom and sklearn) by their intersection."""
-    revs_custom = reviews_per_cluster(data)
-    revs_sklearn = reviews_per_cluster(data, cluster_col='Cluster_sklearn')
-
-    n_custom = np.array(revs_custom['Reviews Number'])
-    n_sklearn = np.array(revs_sklearn['Reviews Number'])
-
-    candidates = np.argsort(np.abs(n_custom[:, None] - n_sklearn), axis=1)[cluster, :]
-    for cand in candidates:
-        num = data[(data['Cluster'] == cluster) & (data['Cluster_sklearn'] == cand)].shape[0]
-        den_1 = data[data['Cluster'] == cluster].shape[0]
-        den_2 = data[data['Cluster_sklearn'] == cand].shape[0]
-        prob_1 = num / den_1
-        prob_2 = num / den_2
-        if prob_1 > 0.1 and prob_2 > 0.1:
-            sk_cluster = cand
-            break
-        else:
-            sk_cluster = cand
-
-    return sk_cluster, prob_1, prob_2
