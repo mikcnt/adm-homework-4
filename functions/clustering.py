@@ -161,3 +161,6 @@ def plot_distributions(data, n_clusters=16):
         cluster_score = data[data['Cluster'] == c]['Score']
         ax[c].hist(cluster_score, bins=bins, alpha=0.8, edgecolor='black')
     plt.show()
+    
+def uniqueusers_per_cluster(data):
+    display(data.groupby(['Cluster'])['UserId'].nunique().reset_index())
