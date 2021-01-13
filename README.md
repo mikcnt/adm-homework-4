@@ -6,7 +6,7 @@
 
 *for "Algorithmic Methods of Data Mining", "La Sapienza" University of Rome, MSc in Data Science, 2020-2021*.
 ## Task
-The goal of this homework was to implement important algorithms from sctach. We were challenged with two completely and interesting problems: the first exercise asks us to build an HyperLogLog structure (starting from the implementation of an hash function itself), while the second challenges us with the implementation of the K-Means clustering algorithm. Alongside the main tasks, we are also asked to answer several questions on the behaviour of these algorithms and on the analysis of the results we obtain using them.
+The goal of this homework was to implement important algorithms from scratch. We were challenged with two completely and interesting problems: the first exercise asks us to build an HyperLogLog structure (starting from the implementation of an hash function itself), while the second challenges us with the implementation of the K-Means clustering algorithm. Alongside the main tasks, we are also asked to answer several questions on the behaviour of these algorithms and on the analysis of the results we obtain using them.
 ## Usage
 In the repository, it is included `requirements.txt`, which consists in a file containing the list of items to be installed using conda, like so:
 
